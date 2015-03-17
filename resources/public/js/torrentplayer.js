@@ -1,6 +1,6 @@
 funciton torrentplayer(opts) {
     var o = $.extend({
-        media_url: "http://localhost:3000/stream"
+        media_url: "/stream"
     });
     
     return {
