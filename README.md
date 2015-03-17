@@ -1,7 +1,7 @@
 # README #
 
-The torrentplayer is a RESTful server that accepts a torrent info in a POST request and
-returns the content of the downloaded file sequentially in a way suitable playing in a web page.
+The torrentplayer is a RESTful server that accepts a torrent magnet URI in a POST request and
+returns the content of the downloaded file sequentially in a way suitable for playing in a web page.
 
 ### What is this repository for? ###
 
