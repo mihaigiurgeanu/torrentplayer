@@ -17,6 +17,15 @@ returns the content of the downloaded file sequentially in a way suitable for pl
 * How to run tests
 * Deployment instructions
 
+#### Dependencies
+
+* python 2.7
+* bottle framework
+
+    $ pip install bottle
+    
+* libtorrent
+
 ### Contribution guidelines ###
 
 * Writing tests
