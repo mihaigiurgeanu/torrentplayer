@@ -6,7 +6,7 @@ from bottle import request, response
 
 @post('/resources/streams')
 def create_stream():
-    print "stream request received: " + request.body.forms.url
+    print "stream request received: " + request.body.getvalue()
     response.status = 201
     response.set_header('Location', '/resources/streams/12345')
     return {

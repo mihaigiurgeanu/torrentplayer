@@ -166,7 +166,7 @@
         var player = torrentplayer();
         $("#play").click(function(e) {
             e.preventDefault();
-            player.createStream($("#magnet-url"));
+            player.createStream($("#magnet-url").val());
         });
     </script>
 </body>
