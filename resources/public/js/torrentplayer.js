@@ -5,7 +5,7 @@ function torrentplayer(opts) {
     
     return {
         createStream: function(magnet_urn) {
-            var request = $.post(o.media_url, magnet_urn);
+            var request = $.post(o.media_url, {url: magnet_urn});
             request.done(function(mediaInfo, statusText, xhr) {
                 console.log("Response for createStream with status" + statusText);
                 if(xhr.status == 201) {
