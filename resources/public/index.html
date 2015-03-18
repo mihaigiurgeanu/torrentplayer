@@ -101,14 +101,17 @@
         <div class="download-section">
             <div class="container">
                 <div class="col-lg-8 col-lg-offset-2">
-                    <h2>Try torrentplayer</h2>
-                    <p>You can try torrentplayer write here. Just insert the magnet url in the text bellow and press play.</p>
-                    <form role="form">
-                        <div class="form-group">
-                            <input type="text" class="form-control" id="magnet-url"></input>
-                        </div>
-                        <button id="play" class="btn btn-default btn-lg" role="button">Play</button>
-                    </form>
+                    <video id="player"></video>
+                    <div id="start_player">
+                        <h2>Try torrentplayer</h2>
+                        <p>You can try torrentplayer write here. Just insert the magnet url in the text bellow and press play.</p>
+                        <form role="form">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="magnet-url"></input>
+                            </div>
+                            <button id="play" class="btn btn-default btn-lg" role="button">Play</button>
+                        </form>
+                    </div>
                </div>
             </div>
         </div>
@@ -119,15 +122,6 @@
 
     <!-- Media player elements -->
     <script src="mediaelement-and-player.js" type="text/javascript"></script>
-
-    <!-- Video Section -->
-    <section id="contact" class="container content-section text-center">
-        <div class="row">
-            <div class="col-lg-8 col-lg-offset-2">
-                <video id="player"></video>
-            </div>
-        </div>
-    </section>
 
 
     <!-- Contact Section -->
@@ -178,9 +172,14 @@
     <script src="js/torrentplayer.js" type="text/javascript"></script>
     
     <script type="text/javascript">
+        $("#player").hide();
+        $("#start_player").show();
+        
         var player = torrentplayer({element: $("#player")});
         $("#play").click(function(e) {
             e.preventDefault();
+            $("#player").show();
+            $("#start_player").hide();
             player.createStream($("#magnet-url").val());
         });
     </script>
