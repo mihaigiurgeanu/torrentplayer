@@ -2,12 +2,28 @@ import libtorrent as lt
 from time import sleep
 import sys
 from traceback import print_exception
+from threading import Lock, Thread
 
 class Torrent:
     def __init__(self):
         print "Creating a new torrent session\n"
         self.ses = lt.session()
         self.ses.listen_on(6781, 6991)
+        self.requests = []
+        self.requests_lock = Lock()
+        self.alerts_thread = Thread(target = (lambda: self.process_alerts_loop()))
+        self.wait_for_pieces_thread = Thread(target = (lambda: self.wait_for_pieces()))
+        self.alerts_thread.start()
+        self.wait_for_pieces_thread.start()
+
+    def register(self, h, q):
+        self.requests_lock.acquire()
+        try:
+            print "Registering new request: ", h.name()
+            self.requests.append((h, 0, q))
+        finally:
+            self.requests_lock.release()
+        
 
     def create_handle(self, magnet):	
 		h = lt.add_magnet_uri(self.ses, magnet, {'save_path': './resources/downloads'})
@@ -17,50 +33,51 @@ class Torrent:
 		
 		return h
 
-    def pieces(self, h):
-        print "pieces(...) called - " + h.name()
-        ti = h.get_torrent_info()
-        print "Got torrent_info"
-        num_pieces = int(ti.num_pieces())
-        print "Got num_pieces"
-        
-        print "Waiting for " + str(num_pieces) + " pieces"
-        for p in xrange(0, num_pieces):
-            print "Waiting for piece " + str(p) + "/" + str(num_pieces) + "\n"
-            while not h.have_piece(p):
-                print "Waiting to have piece " + str(p)
-                sleep(2)
-            print "Reading piece " + str(p)
-            h.read_piece(p)
-            alerts = []
-            found = False
-            while True:
-                print "Acquire all alerts"
-                while True:
-                    print "Reading alert"
-                    a = self.ses.pop_alert()
-                    if not a: break
-                    alerts.append(a)
+    def process_alerts_loop(self):
+        while True:
+            try:
+                alert = self.ses.pop_alert()
+                if not alert:
+                    sleep(0.5)
+                    continue
+                if type(alert) == str:
+                    print alert
+                else:
+                    print alert.message()
+                    if hasattr(alert, 'piece') and hasattr(alert, 'buffer') and hasattr(alert, 'handle'):
+                        self.process_read_piece_alert(alert)
+                    
+            except:
+                (t, v, tb) = sys.exc_info()
+                print_exception(t, v, tb)
 
-                print "Looking for piece %d in read alerts" % (p)
-                for a in alerts:        
-                    if type(a) == str:
-                        print a
+    def process_read_piece_alert(self, a):
+        self.requests_lock.acquire()
+        try:
+            for i in range(0, len(self.requests)):
+                (h, p, q) = self.requests[i]
+                if h.name() == a.handle.name() and p == a.piece:
+                    print "Sending piece %d to the client of %s" % (p, h.name()) 
+                    q.put(a.buffer)
+                    nextp = p + 1
+                    if nextp >= h.get_torrent_info().num_pieces():
+                        del self.requests[i]
+                        q.put(StopIteration)
                     else:
-                        try:
-                            print a.message()
-                            print "Checking a.piece()"
-                            if a.piece == p:
-                                print "Sending piece ", a.piece
-                                yield a.buffer
-                                found = True
-                                break;
-                        except:
-                            (t, v, tb) = sys.exc_info()
-                            print_exception(t, v, tb)
-                            
-                        else:
-                            print "Piece not a match. Searching next"
-                print "Exhausted alerts"
-                if found: break
-                sleep(1)
+                        self.requests[i] = (h, nextp, q)
+                    break
+        finally:
+            self.requests_lock.release()
+    
+    def wait_for_pieces(self):
+        while True:
+            self.requests_lock.acquire()
+            try:
+                for (h, p, q) in self.requests:
+                    print "Check if piece %d is available for %s" % (p, h.name())
+                    if h.have_piece(p):
+                        print "Piece is available"
+                        h.read_piece(p)
+            finally:
+                self.requests_lock.release()
+            sleep(0.5)

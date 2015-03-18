@@ -7,6 +7,8 @@ from uuid import uuid4
 from torrent import Torrent
 import mimetypes; mimetypes.init()
 
+import gevent.queue
+
 
 torrent = Torrent()
 stream_ids = dict()
@@ -19,15 +21,16 @@ def create_stream():
     if url in stream_ids:
         print "The requested downlod already exists: " + stream_ids[url] + "\n"
         
-        response.code = 409
+        response.status = 409
         return {
             'url': '/resources/streams/' + stream_ids[url]  + "\n"
         }
     else:
-        newid = str(uuid4())
+        h = torrent.create_handle(url)
+        newid = h.get_torrent_info().name()
         print "Created new id " + newid + "\n"
         stream_ids[url] = newid
-        h = torrent.create_handle(url)
+
         stream_handles[newid] = h
         
         print "Created new torrent handle for file: " + h.get_torrent_info().name() + "\n"
@@ -52,15 +55,14 @@ def get_stream(stream):
             
         if content_type:
             response.set_header("Content-Type", content_type)
-        print "Waiting for pieces"
-        for p in torrent.pieces(h):
-            print "Sending piece"
-            yield p
-        
+            
+        body = gevent.queue.Queue()
+        torrent.register(h, body)
+        return body
     else:
-        print "Nonexisting stream " + stream
+        print "Stream does not exist " + stream
         response.code = 404
-        yield "File not found"
+        return "Stream does not exists for id " + stream
     
     
 
@@ -72,4 +74,4 @@ def get_home():
 def get_static(filepath):
     return static_file(filepath, root='./resources/public')
 
-run(host='0.0.0.0', port=8080, debug=True)
+run(host='0.0.0.0', port=8080, debug=True, server='gevent')
