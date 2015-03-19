@@ -10,12 +10,12 @@ returns the content of the downloaded file sequentially in a way suitable for pl
 
 ### How do I get set up? ###
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+After downloading the file you just need to unzip the archive on
+a directory on your local computer.
+
+In command line, you will issue:
+
+    #> python torrentplayer.py
 
 #### Dependencies
 
@@ -25,14 +25,25 @@ returns the content of the downloaded file sequentially in a way suitable for pl
     $ pip install bottle
     
 * libtorrent
+    
+    $ apt-get install libtorrent
 
-### Contribution guidelines ###
+* gevent
+    
+    $ pip install gevent
 
-* Writing tests
-* Code review
-* Other guidelines
+For windows there are windows installers for gevent.
 
-### Who do I talk to? ###
+#### Customizing configuration
 
-* Repo owner or admin
-* Other community or team contact
+You can edit main file, torrentplayer.py to customize the default settings:
+
+    * edit the port and the host to listen in the last line of torrentpalyer.py
+
+### Issues
+
+* There is no control over the downloading process. One cannot manage the downloading
+    proccess, it can be just started.
+* If you stop watching the movie the download process dose not stop.
+* There can be a REST api call that shows the current media, so the user could click
+    directly on a link and watch a movie that has already started to download.
