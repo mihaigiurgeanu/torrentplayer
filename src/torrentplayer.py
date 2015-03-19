@@ -61,7 +61,7 @@ def get_stream(stream):
         return body
     else:
         print "Stream does not exist " + stream
-        response.code = 404
+        response.status = 404
         return "Stream does not exists for id " + stream
     
     
