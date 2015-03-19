@@ -1,6 +1,7 @@
-from gevent import monkey; monkey.patch_all()
+#from gevent import monkey; monkey.patch_all()
 
-from bottle import post, get, run
+#from bottle import post, get, run
+from bottle import Bottle
 from bottle import static_file, redirect
 from bottle import request, response
 from uuid import uuid4
@@ -9,12 +10,15 @@ import mimetypes; mimetypes.init()
 
 import gevent.queue
 
+app = Bottle()
 
 torrent = Torrent()
+torrent.start()
+
 stream_ids = dict()
 stream_handles = dict()
 
-@post('/resources/streams')
+@app.post('/resources/streams')
 def create_stream():
     url = request.body.getvalue()
     print "stream request received: " + url
@@ -41,7 +45,7 @@ def create_stream():
             'url': newurl
         }
 
-@get('/resources/streams/<stream>')
+@app.get('/resources/streams/<stream>')
 def get_stream(stream):
     if stream in stream_handles:
         print "Playing media " + stream
@@ -66,12 +70,32 @@ def get_stream(stream):
     
     
 
-@get('/')
+@app.get('/')
 def get_home():
     redirect('/index.html')
 
-@get('/<filepath:path>')
+@app.get('/<filepath:path>')
 def get_static(filepath):
     return static_file(filepath, root='./resources/public')
 
-run(host='0.0.0.0', port=8080, debug=True, server='gevent')
+#run(host='0.0.0.0', port=8080, debug=True, server='gevent')
+
+import signal
+import sys
+def signal_handler(signal, frame):
+        print 'Stopping server...'
+        server.stop()
+        print 'Stopping torrent...'
+        torrent.stop()
+        sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+
+from gevent import pywsgi
+(address, port) = ('0.0.0.0', 8080)
+server = pywsgi.WSGIServer((address, port), app)
+
+
+print "Starting listen on %s:%d" % (address, port)
+print('Press Ctrl+C to exit')
+server.serve_forever()

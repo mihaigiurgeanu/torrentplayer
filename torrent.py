@@ -1,8 +1,8 @@
 import libtorrent as lt
-from time import sleep
 import sys
 from traceback import print_exception
-from threading import Lock, Thread
+from threading import Lock, Thread, Event
+import gevent
 
 class Torrent:
     def __init__(self):
@@ -13,8 +13,18 @@ class Torrent:
         self.requests = []
         self.requests_lock = Lock()
         self.alerts_thread = Thread(target = (lambda: self.process_alerts_loop()))
+        self.stop_event = Event()
+
+
+    def start(self):
         self.alerts_thread.start()
-       
+
+    def stop(self):
+        self.stop_event.set()
+        self.alerts_thread.join(10)
+        if self.alerts_thread.is_alive():
+            print "The alerts thread did not stop"
+        
     def register(self, h, q):
         self.requests_lock.acquire()
         try:
@@ -28,28 +38,28 @@ class Torrent:
 		h = lt.add_magnet_uri(self.ses, magnet, {'save_path': './resources/downloads'})
 		h.set_sequential_download(True)
 		while not h.has_metadata():
-		    sleep(5)
+		    gevent.sleep(5)
 		
 		return h
 
-    def process_alerts_loop(self):
-        while True:
-            try:
-                alert = self.ses.pop_alert()
-                if not alert:
-                    sleep(0.02)
-                    continue
-                if type(alert) == str:
-                    print alert
-                else:
-                    #print type(alert).__name__, ": ", alert.message()
-                    #if hasattr(alert, 'piece') and hasattr(alert, 'buffer') and hasattr(alert, 'handle'):
-                    if type(alert) == lt.read_piece_alert:
-                        self.process_read_piece_alert(alert)
-                        self.check_required_pieces()
-                    if type(alert) == lt.piece_finished_alert:
-                        self.check_required_pieces()
+    def dispatch_alerts(self):
+        while not self.stop_event.is_set():
+            alert = self.ses.pop_alert()
+            if type(alert) == str:
+                print alert
+            else:
+                if type(alert) == lt.read_piece_alert:
+                    self.process_read_piece_alert(alert)
+                    self.check_required_pieces()
+                if type(alert) == lt.piece_finished_alert:
+                    self.check_required_pieces()
                     
+    def process_alerts_loop(self):
+        while not self.stop_event.is_set():
+            try:
+                alert = self.ses.wait_for_alert(2000)
+                if alert:
+                    self.dispatch_alerts()
             except:
                 (t, v, tb) = sys.exc_info()
                 print_exception(t, v, tb)
