@@ -7,9 +7,27 @@ import gevent
 class Torrent:
     def __init__(self):
         print "Creating a new torrent session\n"
+        settings = lt.session_settings()
+        settings.user_agent = 'torrentplayer v0.1.0/' + lt.version
+        
         self.ses = lt.session()
+        self.ses.set_download_rate_limit(int(0))
+        self.ses.set_upload_rate_limit(int(0))
         self.ses.listen_on(6781, 6991)
-        self.ses.set_alert_mask(lt.alert.category_t.progress_notification)
+        self.ses.set_settings(settings)
+        self.ses.set_severity_level(lt.alert.severity_levels.debug)
+        self.ses.add_extension(lt.create_ut_pex_plugin)
+        self.ses.add_extension(lt.create_ut_metadata_plugin)
+        self.ses.add_extension(lt.create_metadata_plugin)
+        self.ses.add_extension(lt.create_smart_ban_plugin)
+        self.ses.set_alert_mask(lt.alert.category_t.progress_notification 
+            | lt.alert.category_t.error_notification 
+            | lt.alert.category_t.peer_notification
+            | lt.alert.category_t.storage_notification
+            | lt.alert.category_t.tracker_notification
+            | lt.alert.category_t.status_notification
+            | lt.alert.category_t.debug_notification)
+        #self.ses.set_alert_mask(lt.alert.category_t.all_categories)
         self.requests = []
         self.requests_lock = Lock()
         self.alerts_thread = Thread(target = (lambda: self.process_alerts_loop()))
@@ -35,19 +53,24 @@ class Torrent:
         
 
     def create_handle(self, magnet):	
-		h = lt.add_magnet_uri(self.ses, magnet, {'save_path': './resources/downloads'})
-		h.set_sequential_download(True)
-		while not h.has_metadata():
+        h = lt.add_magnet_uri(self.ses, magnet, {'save_path': '/home/ubuntu/workspace/resources/downloads'})
+        h.set_max_connections(60)
+        h.set_max_uploads(-1)
+        h.set_ratio(0)
+		#h.set_sequential_download(True)
+        while not h.has_metadata():
 		    gevent.sleep(5)
 		
-		return h
+        return h
 
     def dispatch_alerts(self):
         while not self.stop_event.is_set():
             alert = self.ses.pop_alert()
+            if not alert: break
             if type(alert) == str:
                 print alert
             else:
+                print alert.message()
                 if type(alert) == lt.read_piece_alert:
                     self.process_read_piece_alert(alert)
                     self.check_required_pieces()
