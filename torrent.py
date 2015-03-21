@@ -58,6 +58,7 @@ class Torrent:
             self.requests.append((h, 0, q, False))
         finally:
             self.requests_lock.release()
+        self.check_required_pieces()
         
 
     def create_handle(self, magnet):	
