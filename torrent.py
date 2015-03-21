@@ -8,7 +8,7 @@ class Torrent:
     def __init__(self, save_path):
         print "Creating a new torrent session\n"
         settings = lt.session_settings()
-        settings.user_agent = 'torrentplayer v0.1.1/' + lt.version
+        settings.user_agent = 'torrentplayer v0.1.2/' + lt.version
         
         self.ses = lt.session()
         self.ses.set_download_rate_limit(int(0))
