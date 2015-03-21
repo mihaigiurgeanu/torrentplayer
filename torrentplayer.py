@@ -1,3 +1,5 @@
+save_path='resources/downloads'
+
 #from gevent import monkey; monkey.patch_all()
 
 #from bottle import post, get, run
@@ -11,8 +13,7 @@ import mimetypes; mimetypes.init()
 import gevent.queue
 
 app = Bottle()
-
-torrent = Torrent()
+torrent = Torrent(save_path)
 torrent.start()
 
 stream_ids = dict()

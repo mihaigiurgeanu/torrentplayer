@@ -6,12 +6,16 @@ returns the content of the downloaded file sequentially in a way suitable for pl
 ### What is this repository for? ###
 
 * An HTTP streaming server for content downloaded from bittorrent.
-* 0.1.1
+* 0.1.2
 
 ### How do I get set up? ###
 
 After downloading the file you just need to unzip the archive on
 a directory on your local computer.
+
+Before running, please edit torrentplayer.py file and set the save_path
+to a valid path in your computer. For example: "C:\\Temp", or ".\\" or
+"resources/downloads" or "./".
 
 In command line, you will issue:
 

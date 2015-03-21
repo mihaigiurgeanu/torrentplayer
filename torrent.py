@@ -5,7 +5,7 @@ from threading import Lock, Thread, Event
 import gevent
 
 class Torrent:
-    def __init__(self):
+    def __init__(self, save_path):
         print "Creating a new torrent session\n"
         settings = lt.session_settings()
         settings.user_agent = 'torrentplayer v0.1.1/' + lt.version
@@ -36,6 +36,7 @@ class Torrent:
             print_exception(t, v, tb)
             print "DHT is not running"
 
+        self.save_path = save_path
         self.requests = []
         self.requests_lock = Lock()
         self.alerts_thread = Thread(target = (lambda: self.process_alerts_loop()))
@@ -62,7 +63,7 @@ class Torrent:
         
 
     def create_handle(self, magnet):	
-        h = lt.add_magnet_uri(self.ses, magnet, {'save_path': '/home/ubuntu/workspace/resources/downloads'})
+        h = lt.add_magnet_uri(self.ses, magnet, {'save_path': save_path})
         h.set_max_connections(60)
         h.set_max_uploads(-1)
         h.set_ratio(0)
