@@ -20,13 +20,13 @@ class Torrent:
         self.ses.add_extension(lt.create_ut_metadata_plugin)
         self.ses.add_extension(lt.create_metadata_plugin)
         self.ses.add_extension(lt.create_smart_ban_plugin)
-        self.ses.set_alert_mask(lt.alert.category_t.progress_notification 
-            | lt.alert.category_t.error_notification 
-            | lt.alert.category_t.peer_notification
-            | lt.alert.category_t.storage_notification
-            | lt.alert.category_t.tracker_notification
-            | lt.alert.category_t.status_notification
-            | lt.alert.category_t.debug_notification)
+        # self.ses.set_alert_mask(lt.alert.category_t.progress_notification 
+        #     | lt.alert.category_t.error_notification 
+        #     | lt.alert.category_t.peer_notification
+        #     | lt.alert.category_t.storage_notification
+        #     | lt.alert.category_t.tracker_notification
+        #     | lt.alert.category_t.status_notification
+        #     | lt.alert.category_t.debug_notification)
         #self.ses.set_alert_mask(lt.alert.category_t.all_categories)
         self.requests = []
         self.requests_lock = Lock()
@@ -57,7 +57,7 @@ class Torrent:
         h.set_max_connections(60)
         h.set_max_uploads(-1)
         h.set_ratio(0)
-		#h.set_sequential_download(True)
+        h.set_sequential_download(True)
         while not h.has_metadata():
 		    gevent.sleep(5)
 		
@@ -70,7 +70,7 @@ class Torrent:
             if type(alert) == str:
                 print alert
             else:
-                print alert.message()
+                #print alert.message()
                 if type(alert) == lt.read_piece_alert:
                     self.process_read_piece_alert(alert)
                     self.check_required_pieces()
@@ -111,9 +111,9 @@ class Torrent:
                 for i in range(0, len(self.requests)):
                     (h, p, q, f) = self.requests[i]
                     if not f:
-                        #print "Check if piece %d is available for %s" % (p, h.name())
+                        print "Check if piece %d is available for %s" % (p, h.name())
                         if h.have_piece(p):
-                            #print "Piece is available"
+                            print "%s: Piece %d is available. Ask for reading it" % (h.name(), p)
                             self.requests[i] = (h, p, q, True)
                             h.read_piece(p)
             finally:

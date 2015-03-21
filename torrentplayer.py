@@ -1,10 +1,10 @@
 #from gevent import monkey; monkey.patch_all()
 
 #from bottle import post, get, run
-from bottle import Bottle
+from bottle import Bottle, debug
 from bottle import static_file, redirect
 from bottle import request, response
-from uuid import uuid4
+#from uuid import uuid4
 from torrent import Torrent
 import mimetypes; mimetypes.init()
 
@@ -79,6 +79,7 @@ def get_static(filepath):
     return static_file(filepath, root='./resources/public')
 
 #run(host='0.0.0.0', port=8080, debug=True, server='gevent')
+debug()
 
 import signal
 import sys
