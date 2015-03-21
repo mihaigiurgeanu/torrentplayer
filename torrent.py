@@ -63,7 +63,7 @@ class Torrent:
         
 
     def create_handle(self, magnet):	
-        h = lt.add_magnet_uri(self.ses, magnet, {'save_path': save_path})
+        h = lt.add_magnet_uri(self.ses, magnet, {'save_path': self.save_path})
         h.set_max_connections(60)
         h.set_max_uploads(-1)
         h.set_ratio(0)
