@@ -28,6 +28,14 @@ class Torrent:
         #     | lt.alert.category_t.status_notification
         #     | lt.alert.category_t.debug_notification)
         #self.ses.set_alert_mask(lt.alert.category_t.all_categories)
+
+        try:
+            self.ses.start_dht()
+        except:
+            (t, v, tb) = sys.exc_info()
+            print_exception(t, v, tb)
+            print "DHT is not running"
+
         self.requests = []
         self.requests_lock = Lock()
         self.alerts_thread = Thread(target = (lambda: self.process_alerts_loop()))
