@@ -6,7 +6,7 @@ returns the content of the downloaded file sequentially in a way suitable for pl
 ### What is this repository for? ###
 
 * An HTTP streaming server for content downloaded from bittorrent.
-* 0.1.0-SNAPSHOT
+* 0.1.1
 
 ### How do I get set up? ###
 
